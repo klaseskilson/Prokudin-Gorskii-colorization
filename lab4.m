@@ -1,9 +1,9 @@
 clear all;
 %% Load and prepare image
 
-disp('Loading image...');
+disp('Loading and chopping image...');
 tic
-im_load = imread('images/01043a.tif');
+im_load = imread('images/01043v.jpg');
 % divide into three images
 im_size = size(im_load);
 im_height = floor(im_size(1)/3);
@@ -19,57 +19,34 @@ img = cat(3, im_r, im_g, im_b);
 clear im_*;
 toc
 
-%% Align images
-% Issue: no rotation
-disp('Finding edges...');
+%% Finding edges
+
+disp('Scaling images and finding edges...');
 tic
-% We want to work with 200 pixels wide images. It seems neat.
 padding = floor([.2*size(img, 2), .2*size(img, 1), .6*size(img, 2), .6*size(img, 1)]);
 img_c = imcrop(img, padding);
-% old scaling method
-% scale = 200/size(img_c, 2);
-% img_re = imresize(img_c, scale);
 img_re = reduce_image(img_c);
 scale = size(img_re, 2) / size(img_c, 2);
 
-img_e(:,:,1) = edge(img_re(:,:,1), 'canny', 0.1);
-img_e(:,:,2) = edge(img_re(:,:,2), 'canny', 0.1);
-img_e(:,:,3) = edge(img_re(:,:,3), 'canny', 0.1);
+img_r = edge(img_re(:,:,1), 'canny', 0.1); % red
+img_g = edge(img_re(:,:,2), 'canny', 0.1); % green
+img_b = edge(img_re(:,:,3), 'canny', 0.1); % blue
 toc
+
+%% Align images
+% Issues: 
+% - no rotation
+% - loops for both red and blue channel. Idealy, this would be done in one
+% loop only.
+
 disp('Aligning images...');
 tic
-offset = round(100*scale);
 
-best_r = 0;
-best_b = 0;
-
-loop = 1;
-step = 1;
+movement = 10;
 
 % find how we should move our images!
-for y_s = -offset:step:offset
-    for x_s = -offset:step:offset
-        % move images around
-        tmp_r = circshift(img_e(:,:,1), [x_s y_s]);
-        tmp_b = circshift(img_e(:,:,3), [x_s y_s]);
-        match_r = sum(sum(tmp_r.*img_e(:,:,2)));
-        match_b = sum(sum(tmp_b.*img_e(:,:,2)));
-        
-        if match_r > best_r
-            best_r = match_r;
-            offset_r = [x_s y_s];
-        end
-        if match_b > best_b
-            best_b = match_b;
-            offset_b = [x_s y_s];
-        end
-        
-        ssd_r_stat(loop) = match_r;
-        ssd_b_stat(loop) = match_b;
-        
-        loop = loop+1;
-    end
-end
+offset_r = align_image(img_r, img_g, movement);
+offset_b = align_image(img_b, img_g, movement);
 
 % Actually align our images, and do so on the un-scaled ones.
 offset_r = round(offset_r / scale);
@@ -81,8 +58,8 @@ img_res(:,:,3) = circshift(img(:,:,3), offset_b);
 
 toc
 
-subplot(1,2,1), plot(ssd_r_stat)
-subplot(1,2,2), plot(ssd_b_stat)
+% subplot(1,2,1), plot(ssd_r_stat)
+% subplot(1,2,2), plot(ssd_b_stat)
 
 figure
 imshow(img_res);
