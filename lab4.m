@@ -3,7 +3,7 @@ clear all;
 
 disp('Loading image...');
 tic
-im_load = imread('images/00172v.jpg');
+im_load = imread('images/00106v.jpg');
 % divide into three images
 im_size = size(im_load);
 im_height = floor(im_size(1)/3);
@@ -20,56 +20,63 @@ clear im_*;
 toc
 
 %% Align images
-% Use sum of squared differences to find the best match!
-% Issue: no rotation!
+% Issue: no rotation
+disp('Finding edges...');
+tic
+% We want to work with 200 pixels wide images. It seems neat.
+padding = floor([.2*size(img, 2), .2*size(img, 1), .6*size(img, 2), .6*size(img, 1)]);
+img_c = imcrop(img, padding);
+scale = 200/size(img_c, 2);
+% scale = 1;
+img_re = imresize(img_c, scale);
 
-% We want to work with 300 pixels wide images. It seems neat.
-
-scale = 300/size(img, 2);
-img_re = imresize(img, scale);
-
-
+img_e(:,:,1) = edge(img_re(:,:,1), 'canny', 0.1);
+img_e(:,:,2) = edge(img_re(:,:,2), 'canny', 0.1);
+img_e(:,:,3) = edge(img_re(:,:,3), 'canny', 0.1);
+toc
 disp('Aligning images...');
 tic
-offset = 20;
+offset = 10;
 
-diff_r = inf;
-diff_b = inf;
+best_r = 0;
+best_b = 0;
 
 loop = 1;
+step = 1;
 
 % find how we should move our images!
-for x_s = -offset:offset
-    for y_s = -offset:offset
+for y_s = -offset:step:offset
+    for x_s = -offset:step:offset
         % move images around
-        tmp_r = circshift(img_re(:,:,1), [x_s y_s]);
-        tmp_b = circshift(img_re(:,:,3), [x_s y_s]);
+        tmp_r = circshift(img_e(:,:,1), [x_s y_s]);
+        tmp_b = circshift(img_e(:,:,3), [x_s y_s]);
         
         % Find sum of squared diff - in other words: compare our moved red
         % and blue images with our green image, and look for the best
         % match (= when the difference is the smallest found).
-        ssd_r = sum(sum((img_re(:,:,2) - tmp_r).^2));
-        ssd_b = sum(sum((img_re(:,:,2) - tmp_b).^2));
         
-        if ssd_r < diff_r
-            diff_r = ssd_r;
+        match_r = sum(sum(tmp_r.*img_e(:,:,2)));
+        match_b = sum(sum(tmp_b.*img_e(:,:,2)));
+        
+        if match_r > best_r
+            best_r = match_r;
             offset_r = [x_s y_s];
         end
-        if ssd_b < diff_b
-            diff_b = ssd_b;
+        if match_b > best_b
+            best_b = match_b;
             offset_b = [x_s y_s];
         end
         
-        ssd_r_stat(loop) = ssd_r;
-        ssd_b_stat(loop) = ssd_b;
+        ssd_r_stat(loop) = match_r;
+        ssd_b_stat(loop) = match_b;
         
         loop = loop+1;
     end
 end
 
 % Actually align our images, and do so on the un-scaled ones.
-offset_r = round(offset_r * scale);
-offset_b = round(offset_b * scale);
+offset_r = round(offset_r / scale);
+offset_b = round(offset_b / scale);
 
 img_res = img;
 img_res(:,:,1) = circshift(img(:,:,1), offset_r);
@@ -77,7 +84,11 @@ img_res(:,:,3) = circshift(img(:,:,3), offset_b);
 
 toc
 
-imshow(img);
+subplot(1,2,1), plot(ssd_r_stat)
+subplot(1,2,2), plot(ssd_b_stat)
+
+figure
+imshow(img_res);
 
 %% Detect borders
 % Use matlab's edge function with the canny method. This finds the local
