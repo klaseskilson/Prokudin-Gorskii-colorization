@@ -3,7 +3,7 @@ clear all;
 
 disp('Loading and chopping image...');
 tic
-im_load = imread('images/01043v.jpg');
+im_load = imread('images/00106a.tif');
 % divide into three images
 im_size = size(im_load);
 im_height = floor(im_size(1)/3);
@@ -52,35 +52,19 @@ offset_b = align_image(img_b, img_g, movement);
 offset_r = round(offset_r / scale);
 offset_b = round(offset_b / scale);
 
-img_res = img;
-img_res(:,:,1) = circshift(img(:,:,1), offset_r);
-img_res(:,:,3) = circshift(img(:,:,3), offset_b);
+aligned = img;
+aligned(:,:,1) = circshift(img(:,:,1), offset_r);
+aligned(:,:,3) = circshift(img(:,:,3), offset_b);
 
 toc
 
-% subplot(1,2,1), plot(ssd_r_stat)
-% subplot(1,2,2), plot(ssd_b_stat)
-
-figure
-imshow(img_res);
+% imshow(aligned);
 
 %% Detect borders
-% Use matlab's edge function with the canny method. This finds the local
-% maxima of the gradient. In other words, where the difference between
-% neighbouring values peak. 
 
-% edge_r = edge(img(:,:,1), 'canny', 0.1);
-% ave_x_ = sum(edge_r,1)/img_size(1);
+disp('Detecting borders...');
+tic
+cropped = crop_image(aligned);
+toc
 
-
-
-
-
-
-
-
-
-
-
-
-
+imshowpair(aligned, cropped, 'montage');
