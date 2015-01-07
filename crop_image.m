@@ -1,4 +1,4 @@
-function cropped_image = crop_image(img)
+function cropped_image = crop_image(img, threshold)
 % Use Matlab's edge function with the canny method. This finds the local
 % maxima of the gradient. In other words, where the difference between
 % neighbouring values peak. 
@@ -19,8 +19,11 @@ for i = 1:c
     % Find mean value and mask the values.
     tmp_ver_ave = mean(tmp_e, 1);
     tmp_hor_ave = mean(tmp_e, 2);
-    tmp_ver_mask = tmp_ver_ave > 3*mean(tmp_ver_ave);
-    tmp_hor_mask = tmp_hor_ave > 3*mean(tmp_hor_ave);
+    if nargin < 2
+        threshold = 3*mean(tmp_hor_ave);
+    end
+    tmp_ver_mask = tmp_ver_ave > threshold;
+    tmp_hor_mask = tmp_hor_ave > threshold;
     
     % Find last values.
     vert(i) = find(tmp_ver_mask, 1, 'last');
