@@ -17,7 +17,7 @@ end
 output = input;
 
 if w > accept_width
-    disp(['Width is ', num2str(w), ', reducing...']);
+%     disp(['Width is ', num2str(w), ', reducing...']);
     % reduce size using gausian 
     output = impyramid(output, 'reduce');
     % make function call it self recursively

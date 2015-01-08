@@ -3,7 +3,7 @@ clear all;
 
 disp('Loading and chopping image...');
 tic
-im_load = im2double(imread('images/01443a.tif'));
+im_load = im2double(imread('images/00106a.tif'));
 % divide into three images
 im_size = size(im_load);
 im_height = floor(im_size(1)/3);
@@ -22,7 +22,7 @@ toc
 %% Finding edges
 
 disp('Scaling images and finding edges...');
-tic
+
 padding = floor([.2*size(img, 2), .2*size(img, 1), .6*size(img, 2), .6*size(img, 1)]);
 img_c = imcrop(img, padding);
 img_re = reduce_image(img_c);
@@ -40,7 +40,7 @@ toc
 % loop only.
 
 disp('Aligning images...');
-tic
+
 
 movement = 10;
 
@@ -63,7 +63,6 @@ toc
 %% Detect borders
 
 disp('Detecting borders...');
-tic
 cropped = crop_image(aligned);
 toc
 
@@ -72,8 +71,11 @@ toc
 %% Color correction!
 
 disp('Correcting colors...');
-tic
 corrected = color_correct(cropped);
 toc
 
-imshowpair(cropped, corrected, 'montage');
+% imshowpair(cropped, corrected, 'montage');
+
+figure
+imshow(corrected);
+title('Final result');

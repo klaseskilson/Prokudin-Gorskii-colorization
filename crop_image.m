@@ -6,11 +6,13 @@ function cropped_image = crop_image(img, threshold)
 [h w c] = size(img);
 
 % Only use the top- and left-most tenth of the image, and assume that the
-% corresponding borders on the other sides are roughly the same.
+% corresponding borders on the other sides are roughly the same. This is to
+% increase performance. One could, of course, be very thorough and examine
+% more of the corners.
 c_img = img(1:floor(h/10), 1:floor(w/10), :);
 
-vert = zeros(1, c);
-horz = zeros(1, c);
+vert = 0;
+horz = 0;
 
 for i = 1:c
     % Find edges
@@ -25,13 +27,20 @@ for i = 1:c
     tmp_ver_mask = tmp_ver_ave > threshold;
     tmp_hor_mask = tmp_hor_ave > threshold;
     
-    % Find last values.
-    vert(i) = find(tmp_ver_mask, 1, 'last');
-    horz(i) = find(tmp_hor_mask, 1, 'last');
+    % Find last values. Semi-ugly.
+    tmp_vert = find(tmp_ver_mask, 1, 'last');
+    tmp_horz = find(tmp_hor_mask, 1, 'last');
+    
+    if tmp_vert > vert
+        vert = tmp_vert;
+    end
+    if tmp_horz > horz
+        horz = tmp_horz;
+    end
 end
 
 % Avoid ugly miscoloured borders.
-vert_crop = max(vert);
-horz_crop = max(horz);
+% vert_crop = max(vert);
+% horz_crop = max(horz);
 
-cropped_image = imcrop(img, [horz_crop vert_crop (w-2*horz_crop) (h-2*vert_crop)]);
+cropped_image = imcrop(img, [horz vert (w-2*horz) (h-2*vert)]);
