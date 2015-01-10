@@ -13,7 +13,7 @@ if nargin < 2
     accept_width = 300;
 end
 
-[h w l] = size(input);
+[h,w,l] = size(input);
 output = input;
 
 if w > accept_width

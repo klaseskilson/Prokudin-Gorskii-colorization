@@ -1,7 +1,5 @@
 function output_image = color_correct(input)
-
-% convert to double for precision
-% input = double(input);
+% color correct an image using gray world assumption
 
 % calculate mean value for each layer
 red = input(:,:,1);
@@ -18,5 +16,3 @@ red = r_g * red;
 blue = b_g * blue;
 
 output_image = cat(3, red, green, blue);
-
-disp('done');

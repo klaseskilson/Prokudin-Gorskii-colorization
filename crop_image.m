@@ -1,7 +1,5 @@
 function cropped_image = crop_image(img, threshold)
-% Use Matlab's edge function with the canny method. This finds the local
-% maxima of the gradient. In other words, where the difference between
-% neighbouring values peak. 
+% Crop unwanted borders from image img
 
 [h w c] = size(img);
 
@@ -16,11 +14,15 @@ horz = 0;
 
 for i = 1:c
     % Find edges
+    % Use Matlab's edge function with the canny method. This finds the local
+    % maxima of the gradient. In other words, where the difference between
+    % neighbouring values peak. 
     tmp_e = edge(c_img(:,:,i), 'canny', 0.1);
     
     % Find mean value and mask the values.
     tmp_ver_ave = mean(tmp_e, 1);
     tmp_hor_ave = mean(tmp_e, 2);
+    
     if nargin < 2
         threshold = 3*mean(tmp_hor_ave);
     end
@@ -38,9 +40,5 @@ for i = 1:c
         horz = tmp_horz;
     end
 end
-
-% Avoid ugly miscoloured borders.
-% vert_crop = max(vert);
-% horz_crop = max(horz);
 
 cropped_image = imcrop(img, [horz vert (w-2*horz) (h-2*vert)]);

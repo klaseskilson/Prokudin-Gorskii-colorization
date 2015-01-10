@@ -1,4 +1,6 @@
 function offset = align_image(image, reference, movement, step)
+% Align image to reference, from -movement to movement in both x and y
+% direction, and take step long steps.
 
 switch nargin
     case 1
